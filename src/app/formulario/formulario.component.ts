@@ -8,18 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class FormularioComponent implements OnInit {
 
-  clicked: boolean = false;
+  usuario: any = {
+    nome: null,
+    email: null
+  };
 
   constructor() { }
 
   ngOnInit() {
   }
 
-  isClicked(){
-    this.clicked = true;
-  }
-
   onSubmit(form){
     console.log(form);
+    // console.log(this.usuario);
   }
 }
