@@ -10,10 +10,22 @@ form i.fa {
     z-index: 9999;
 }
 
-.form-row .form-group > i.fa{
+.form-row .form-group:not(.col-md-3) .fa{
     position: absolute;
     top: 40px;
-    right: 10px;
+    right: 12px;
     font-size: 20px;
     z-index: 9999;
+}
+
+.form-row .form-group.col-md-3 .fa{
+    position: absolute;
+    top: 40px;
+    right: 28px;
+    font-size: 20px;
+    z-index: 9999;
+}
+
+.form-row .form-group.col-md-3 .alert-danger{
+    width: 95%;
 }

@@ -1,14 +1,14 @@
 <div style="margin-top: 20px" *ngIf="form">
   <div>
-      Detalhes do form
+    Detalhes do form
   </div>
   <pre class="bg-light border rounded">
-    Form válido {{ form.valid }}
+    <span> Form válido {{ form.valid }} </span>
   </pre>
   <pre class="bg-light border rounded">
-    Form submetido {{ form.submitted}}
+      <span> Form submetido {{ form.submitted}} </span>
   </pre>
-  <pre class="bg-light border rounded" style="padding: 10px">
+  <pre id="valores" class="bg-light border rounded">
     Valores: <br> {{ form.value | json }}
   </pre>
 </div>
