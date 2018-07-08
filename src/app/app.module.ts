@@ -7,7 +7,6 @@ import { TabelaDadosComponent } from './tabela-dados/tabela-dados.component';
 import { FormularioReativoComponent } from './formulario-reativo/formulario-reativo.component';
 import { FormularioModule } from './formulario/formulario.module';
 
-
 @NgModule({
   declarations: [
     AppComponent,
