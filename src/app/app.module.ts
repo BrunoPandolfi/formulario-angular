@@ -8,11 +8,13 @@ import { FormularioModule } from './formulario/formulario.module';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormularioReativoModule } from './formulario-reativo/formulario-reativo.module';
+import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
     AppComponent,
-    TabelaDadosComponent,
+    TabelaDadosComponent
   ],
   imports: [
     BrowserModule,
@@ -20,7 +22,9 @@ import { FormularioReativoModule } from './formulario-reativo/formulario-reativo
     AppRoutingModule,
     FormularioModule,
     ReactiveFormsModule,
-    FormularioReativoModule
+    FormularioReativoModule,
+    HttpModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]

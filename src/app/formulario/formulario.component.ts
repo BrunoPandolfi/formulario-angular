@@ -1,4 +1,5 @@
-import { Component, OnInit, ANALYZE_FOR_ENTRY_COMPONENTS } from '@angular/core';
+import { ConsultaCepService } from './../shared/services/consulta-cep.service';
+import { Component, OnInit } from '@angular/core';
 import { Http } from '@angular/http';
 import { map } from 'rxjs/operators';
 
@@ -15,7 +16,10 @@ export class FormularioComponent implements OnInit {
     email: null
   };
 
-  constructor(private http: Http) { }
+  constructor(
+    private http: Http,
+    private cepService: ConsultaCepService
+  ) { }
 
   ngOnInit() {
   }
@@ -45,22 +49,12 @@ export class FormularioComponent implements OnInit {
     // Nova variável "cep" somente com dígitos.
     cep = cep.replace(/\D/g, '');
 
-    // Verifica se campo cep possui valor informado.
-    if (cep !== '') {
-
-        // Expressão regular para validar o CEP.
-        const validacep = /^[0-9]{8}$/;
-
-        // Valida o formato do CEP.
-        if(validacep.test(cep)) {
-
-          this.resetaDadosForm(form);
-
-          this.http.get(`//viacep.com.br/ws/${cep}/json`)
-          .pipe(map(dados => dados.json())          )
-          .subscribe(dados => this.populaDadosForm(dados, form));
-        }
-    }
+     // Verifica se campo cep possui valor informado.
+     if (cep != null && cep !== '')
+     {
+        this.cepService.consultaCEP(cep)
+            .subscribe(dados => this.populaDadosForm(dados, form));
+     }
   }
 
   populaDadosForm(dados, formulario)
@@ -75,10 +69,10 @@ export class FormularioComponent implements OnInit {
         rua: dados.logradouro,
         bairro: dados.bairro ,
         cidade: dados.localidade,
-        estado: dados.uf 
+        estado: dados.uf
       }
     });*/
-    
+
     formulario.form.patchValue({
       endereco:{
         cep: dados.cep,

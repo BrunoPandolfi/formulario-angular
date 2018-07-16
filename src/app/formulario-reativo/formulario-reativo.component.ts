@@ -4,6 +4,7 @@ import { FormGroup, FormControl, FormBuilder, Validators} from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { Http } from '@angular/http';
 import { EstadoBr } from '../shared/models/estado-br';
+import { ConsultaCepService } from '../shared/services/consulta-cep.service';
 
 @Component({
   selector: 'app-formulario-reativo',
@@ -18,7 +19,8 @@ export class FormularioReativoComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private http: Http,
-    private dropdownService: DropdownService
+    private dropdownService: DropdownService,
+    private cepService: ConsultaCepService
   ) { }
 
   ngOnInit() {
@@ -57,7 +59,8 @@ export class FormularioReativoComponent implements OnInit {
         // this.resetar();
       });
     }
-    else{
+    else
+    {
       console.log('formulario inválido');
       this.verificaValidacoesForm (this.formulario);
     }
@@ -102,27 +105,13 @@ export class FormularioReativoComponent implements OnInit {
 
   consultaCEP()
   {
-    let cep = this.formulario.get('endereco.cep').value;
-    console.log(cep);
-
-    // Nova variável "cep" somente com dígitos.
-    cep = cep.replace(/\D/g, '');
+    const cep = this.formulario.get('endereco.cep').value;
 
     // Verifica se campo cep possui valor informado.
-    if (cep != '')
+    if (cep != null && cep !== '')
     {
-        // Expressão regular para validar o CEP.
-        const validacep = /^[0-9]{8}$/;
-
-        // Valida o formato do CEP.
-        if(validacep.test(cep)) {
-
-          this.resetaDadosForm();
-
-          this.http.get(`//viacep.com.br/ws/${cep}/json`)
-          .pipe(map(dados => dados.json()))
-          .subscribe(dados => this.populaDadosForm(dados));
-        }
+        this.cepService.consultaCEP(cep)
+            .subscribe(dados => this.populaDadosForm(dados));
     }
   }
 
