@@ -1,7 +1,9 @@
+import { DropdownService } from '../shared/services/dropdown.service';
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, Validators} from '../../../node_modules/@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators} from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { Http } from '@angular/http';
+import { EstadoBr } from '../shared/models/estado-br';
 
 @Component({
   selector: 'app-formulario-reativo',
@@ -11,14 +13,19 @@ import { Http } from '@angular/http';
 export class FormularioReativoComponent implements OnInit {
 
   formulario: FormGroup;
-
+  estados: EstadoBr[];
 
   constructor(
     private formBuilder: FormBuilder,
-    private http: Http
+    private http: Http,
+    private dropdownService: DropdownService
   ) { }
 
   ngOnInit() {
+
+    this.dropdownService.getEstadosBr()
+        .subscribe(dados => {this.estados = dados; console.log(dados);});
+
     /* this.formulario = new FormGroup({
       nome: new FormControl(null),
       email: new FormControl(null)
@@ -35,30 +42,49 @@ export class FormularioReativoComponent implements OnInit {
         bairro: [null, Validators.required],
         cidade: [null, Validators.required],
         estado: [null, Validators.required]
-      });
+      })
     });
   }
 
-  onSubmit(){
+  onSubmit() {
     console.log(this.formulario);
-    this.http.post('https://httpbin.org/post', JSON.stringify(this.formulario.value))
-        .pipe(map(res => res))
-        .subscribe(dados => {
-          console.log(dados)
-          //this.resetar();
-        });
-    
+    if (this.formulario.valid)
+    {
+      this.http.post('https://httpbin.org/post', JSON.stringify(this.formulario.value))
+      .pipe(map(res => res))
+      .subscribe(dados => {
+        console.log(dados);
+        // this.resetar();
+      });
+    }
+    else{
+      console.log('formulario inválido');
+      this.verificaValidacoesForm (this.formulario);
+    }
+  }
+
+  verificaValidacoesForm(formgroup: FormGroup)
+  {
+    Object.keys(formgroup.controls).forEach(campo => {
+      console.log(campo);
+      const controle = formgroup.get(campo);
+      controle.markAsDirty();
+      if (controle instanceof FormGroup)
+      {
+        this.verificaValidacoesForm(controle);
+      }
+    });
   }
 
   verificaValidTouched (campo: string){
-    return !this.formulario.get(campo).valid && this.formulario.get(campo).touched;
+    return !this.formulario.get(campo).valid && (this.formulario.get(campo).touched || this.formulario.get(campo).dirty)  ;
   }
 
-  verificaEmailInválido(){ 
-    let campoEmail = this.formulario.get('email');
-    if (campoEmail.get('email').errors)
+  verificaEmailInvalido(){
+    const campoEmail = this.formulario.get('email');
+    if (campoEmail.errors)
     {
-      return campoEmail.errors['email']
+      return campoEmail.errors['email'];
     }
   }
 
@@ -73,4 +99,58 @@ export class FormularioReativoComponent implements OnInit {
   resetar(){
     this.formulario.reset();
   }
+
+  consultaCEP()
+  {
+    let cep = this.formulario.get('endereco.cep').value;
+    console.log(cep);
+
+    // Nova variável "cep" somente com dígitos.
+    cep = cep.replace(/\D/g, '');
+
+    // Verifica se campo cep possui valor informado.
+    if (cep != '')
+    {
+        // Expressão regular para validar o CEP.
+        const validacep = /^[0-9]{8}$/;
+
+        // Valida o formato do CEP.
+        if(validacep.test(cep)) {
+
+          this.resetaDadosForm();
+
+          this.http.get(`//viacep.com.br/ws/${cep}/json`)
+          .pipe(map(dados => dados.json()))
+          .subscribe(dados => this.populaDadosForm(dados));
+        }
+    }
+  }
+
+  populaDadosForm(dados)
+  {
+    this.formulario.patchValue({
+      endereco:{
+        cep: dados.cep,
+        complemento: dados.complemento ,
+        rua: dados.logradouro,
+        bairro: dados.bairro ,
+        cidade: dados.localidade,
+        estado: dados.uf
+      }
+    });
+  }
+
+  resetaDadosForm(){
+    this.formulario.patchValue({
+      endereco: {
+        cep: null,
+        complemento: null,
+        rua: null,
+        bairro: null,
+        cidade: null,
+        estado: null
+      }
+    });
+  }
+
 }
