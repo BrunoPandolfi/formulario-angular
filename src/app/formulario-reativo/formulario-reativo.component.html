@@ -74,17 +74,60 @@
       </div>
     </div>
   </div>
-  <div class="form-group col-md-3">
-    <label for="cargo" class="control-panel">Cargo</label>
-    <select type="text" class="form-control" name="cargo" formControlName="cargo" id="cargo" style="width: 95%" [compareWith]="compararCargos">
-      <option *ngFor="let cargo of cargos" [ngValue]="cargo">{{ cargo.desc }}</option>
-    </select>
+  <div class="form-row" style="margin-left: 10px">
+    <div class="form-group col-md-4">
+      <label for="cargo" class="control-panel">Cargo</label>
+      <select type="text" class="form-control" name="cargo" formControlName="cargo" id="cargo" style="width: 95%" [compareWith]="compararCargos">
+        <option *ngFor="let cargo of cargos" [ngValue]="cargo">{{ cargo.desc }}</option>
+      </select>
+    </div>
+    <div class="form-group col-md-4">
+      <label for="tecnologias" class="control-panel">Tecnologias</label>
+      <select multiple type="text" class="form-control" name="tecnologias" formControlName="tecnologias" id="tecnologias" style="width: 95%">
+        <option *ngFor="let tecnologia of tecnologias" [value]="tecnologia.nome">{{ tecnologia.desc }}</option>
+      </select>
+    </div>
+    <div class="form-group col-md-3">
+      <label for="newsletter" class="control-panel">Newsletter</label>
+      <div class="row">
+        <div class="col-sm-4" *ngFor="let item of newsletterOp">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" [value]="item.valor" formControlName="newsletter">
+            <label class="form-check-label">{{ item.desc }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-3" style="margin-left: 10px" [ngClass]="aplicaIsValidInvalid('termos')">
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" formControlName="termos" [ngClass]="aplicaIsValidInvalid('termos')">
+        <label class="form-check-label" [ngClass]="aplicaIsValidInvalid('termos')">Aceito os termos.</label>
+      </div>
+      <app-campo-control-erro [mostrarErro]="verificaValidTouched('termos')" msgErro="Por favor, aceite os termos">
+      </app-campo-control-erro>
+    </div>
+    <div class="form-group col-md-3">
+      <label for="frameworks">Frameworks</label>
+      <div id="frameworks" class="row">
+        <div class="col-sm-6">
+          <div class="form-check form-check-inline col-sm-5" formArrayName="frameworks" *ngFor="let item of formulario.get('frameworks').controls; let i = index">
+            <input class="form-check-input" type="checkbox" [formControlName]="i" [ngClass]="aplicaIsValidInvalid('frameworks')">
+            <label class="form-check-label" [ngClass]="aplicaIsValidInvalid('frameworks')">{{ frameworks[i] }}</label>
+          </div>
+        </div>
+      </div>
+      <app-campo-control-erro [mostrarErro]="!formulario.get('frameworks').valid" msgErro="Selecione 1 opção">
+      </app-campo-control-erro>
+    </div>
   </div>
 
   <div class="col-sm-12">
     <button type="submit" class="btn btn-primary">Submit</button>
-    <button class="btn" (click)="resetar()" style="margin-left: 10px">Cancelar</button>
-    <button class="btn" (click)="setarCargo()" style="margin-left: 10px">Cargo</button>
+    <button class="btn btn-default" (click)="resetar()" style="margin-left: 10px">Cancelar</button>
+    <button class="btn btn-info" (click)="setarCargo()" style="margin-left: 10px">Cargo</button>
+    <button class="btn btn-info" (click)="setarTecnologias()" style="margin-left: 10px">Tecnologias</button>
     <app-form-debug [form]="formulario"></app-form-debug>
   </div>
 </form>

@@ -1,6 +1,7 @@
+import { FormValidations } from './../shared/services/form-validations';
 import { DropdownService } from '../shared/services/dropdown.service';
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, Validators} from '@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators, FormArray } from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { Http } from '@angular/http';
 import { EstadoBr } from '../shared/models/estado-br';
@@ -13,24 +14,28 @@ import { Observable } from 'rxjs';
   styleUrls: ['./formulario-reativo.component.css']
 })
 export class FormularioReativoComponent implements OnInit {
-
   formulario: FormGroup;
   estados: Observable<EstadoBr[]>;
   cargos: any[];
+  tecnologias: any[];
+  newsletterOp: any[];
+
+  frameworks = ['Angular', 'React', 'Vue', 'Sencha'];
 
   constructor(
     private formBuilder: FormBuilder,
     private http: Http,
     private dropdownService: DropdownService,
     private cepService: ConsultaCepService
-  ) { }
+  ) {}
 
   ngOnInit() {
-
     this.estados = this.dropdownService.getEstadosBr();
     this.cargos = this.dropdownService.getCargos();
+    this.tecnologias = this.dropdownService.getTecnologias();
+    this.newsletterOp = this.dropdownService.getNewsletter();
 
-   /*this.dropdownService.getEstadosBr()
+    /*this.dropdownService.getEstadosBr()
         .subscribe(dados => {this.estados = dados; console.log(dados);});*/
 
     /* this.formulario = new FormGroup({
@@ -50,92 +55,110 @@ export class FormularioReativoComponent implements OnInit {
         cidade: [null, Validators.required],
         estado: [null, Validators.required]
       }),
-      cargo: [null]
+      cargo: [null],
+      tecnologias: [null],
+      newsletter: ['s'],
+      termos: [null, Validators.pattern('true')],
+      frameworks: this.buildFrameworks()
     });
   }
 
+  buildFrameworks(){
+
+    const values = this.frameworks.map(v => new FormControl(false));
+
+    return this.formBuilder.array(values, FormValidations.requiredMinCheckbox(1));
+  }
+
   onSubmit() {
+
     console.log(this.formulario);
-    if (this.formulario.valid)
-    {
-      this.http.post('https://httpbin.org/post', JSON.stringify(this.formulario.value))
-      .pipe(map(res => res))
-      .subscribe(dados => {
-        console.log(dados);
-        // this.resetar();
-      });
-    }
-    else
-    {
+
+    let valueSubmit = Object.assign({}, this.formulario.value);
+
+    valueSubmit = Object.assign(valueSubmit, {
+      frameworks: valueSubmit.frameworks
+        .map((v, i) => v ? this.frameworks[i] : null)
+        .filter(v => v !== null);
+    });
+
+    console.log(valueSubmit);
+
+    if (this.formulario.valid) {
+      this.http
+        .post('https://httpbin.org/post', JSON.stringify(this.formulario.value))
+        .pipe(map(res => res))
+        .subscribe(dados => {
+          console.log(dados);
+          // this.resetar();
+        });
+    } else {
       console.log('formulario inválido');
-      this.verificaValidacoesForm (this.formulario);
+      this.verificaValidacoesForm(this.formulario);
     }
   }
 
-  verificaValidacoesForm(formgroup: FormGroup)
-  {
+  verificaValidacoesForm(formgroup: FormGroup) {
     Object.keys(formgroup.controls).forEach(campo => {
       console.log(campo);
       const controle = formgroup.get(campo);
       controle.markAsDirty();
-      if (controle instanceof FormGroup)
-      {
+      if (controle instanceof FormGroup) {
         this.verificaValidacoesForm(controle);
       }
     });
   }
 
-  verificaValidTouched (campo: string){
-    return !this.formulario.get(campo).valid && (this.formulario.get(campo).touched || this.formulario.get(campo).dirty)  ;
+  verificaValidTouched(campo: string) {
+    return (
+      !this.formulario.get(campo).valid &&
+      (this.formulario.get(campo).touched || this.formulario.get(campo).dirty)
+    );
   }
 
-  verificaEmailInvalido(){
+  verificaEmailInvalido() {
     const campoEmail = this.formulario.get('email');
-    if (campoEmail.errors)
-    {
+    if (campoEmail.errors) {
       return campoEmail.errors['email'];
     }
   }
 
-  aplicaIsValidInvalid(campo: string)
-  {
+  aplicaIsValidInvalid(campo: string) {
     return {
-      'is-valid' : this.verificaValidTouched(campo),
-      'is-invalid' : this.verificaValidTouched(campo)
+      'is-valid': this.verificaValidTouched(campo),
+      'is-invalid': this.verificaValidTouched(campo)
     };
   }
 
-  resetar(){
+  resetar() {
     this.formulario.reset();
   }
 
-  consultaCEP()
-  {
+  consultaCEP() {
     const cep = this.formulario.get('endereco.cep').value;
 
     // Verifica se campo cep possui valor informado.
-    if (cep != null && cep !== '')
-    {
-        this.cepService.consultaCEP(cep)
-            .subscribe(dados => this.populaDadosForm(dados));
+    if (cep != null && cep !== '') {
+      this.cepService
+        .consultaCEP(cep)
+        .subscribe(dados => this.populaDadosForm(dados));
     }
   }
 
-  populaDadosForm(dados)
-  {
+  populaDadosForm(dados) {
     this.formulario.patchValue({
-      endereco:{
+      endereco: {
         cep: dados.cep,
-        complemento: dados.complemento ,
+        complemento: dados.complemento,
         rua: dados.logradouro,
-        bairro: dados.bairro ,
+        bairro: dados.bairro,
         cidade: dados.localidade,
         estado: dados.uf
       }
     });
   }
 
-  resetaDadosForm(){
+  resetaDadosForm() {
     this.formulario.patchValue({
       endereco: {
         cep: null,
@@ -148,14 +171,18 @@ export class FormularioReativoComponent implements OnInit {
     });
   }
 
-  setarCargo(){
-    const cargo = {nome: 'Dev', nivel: 'Pleno', desc: 'Dev Pl'};
+  setarCargo() {
+    const cargo = { nome: 'Dev', nivel: 'Pleno', desc: 'Dev Pl' };
     this.formulario.get('cargo').setValue(cargo);
   }
 
-  compararCargos(obj1, obj2){
-    return obj1 && obj2 ? (obj1.nome === obj2.nome && obj1.nivel === obj2.nivel) : obj1 && obj2;
-
+  compararCargos(obj1, obj2) {
+    return obj1 && obj2
+      ? obj1.nome === obj2.nome && obj1.nivel === obj2.nivel
+      : obj1 && obj2;
   }
 
+  setarTecnologias() {
+    this.formulario.get('tecnologias').setValue(['java', 'php', 'ruby']);
+  }
 }
